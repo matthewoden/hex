@@ -16,6 +16,7 @@ defmodule Hex.MixProject do
       deps: deps(@elixir_version),
       elixirc_options: elixirc_options(Mix.env),
       elixirc_paths: elixirc_paths(Mix.env),
+      erlc_paths: ["src", "../hex_tar/src"],
       xref: xref()
     ]
   end
