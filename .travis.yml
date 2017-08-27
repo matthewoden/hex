@@ -21,6 +21,8 @@ before_install:
 - mix local.hex --force
 - mix local.rebar --force
 before_script:
+# FIXME: vendor hex_tar instead
+- git clone https://github.com/wojtekmach/hex_tar.git ../hex_tar
 - git clone https://github.com/hexpm/hexpm.git hexpm
 - cd hexpm; PATH=$(pwd)/../${HEXPM_ELIXIR_PATH}/bin:$(pwd)/../${HEXPM_OTP_PATH}/bin:${PATH}
   MIX_HOME=$(pwd)/../${HEXPM_MIX_HOME} MIX_ARCHIVES=$(pwd)/../${HEXPM_MIX_HOME}
