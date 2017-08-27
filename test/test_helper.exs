@@ -17,14 +17,15 @@ unless :integration in ExUnit.configuration[:exclude] do
   Hexpm.start()
 
   pkg_meta = %{
-    "maintainers" => ["John Doe", "Jane Doe"],
-    "licenses" => ["GPL2", "MIT", "Apache"],
-    "links" => %{"docs" => "http://docs", "repo" => "http://repo"},
-    "description" => "Some description"
+    maintainers: ["John Doe", "Jane Doe"],
+    licenses: ["GPL2", "MIT", "Apache"],
+    links: %{"docs" => "http://docs", "repo" => "http://repo"},
+    description: "Some description",
+    files: []
   }
 
   auth = Hexpm.new_user("user", "user@mail.com", "hunter42", "my_key")
-  package_name_meta = Map.put(pkg_meta, "app", "app_name")
+  package_name_meta = Map.put(pkg_meta, :app, "app_name")
 
   Hexpm.new_package("ex_doc", "0.0.1", [], pkg_meta, auth)
   Hexpm.new_package("ex_doc", "0.1.0", [], pkg_meta, auth)

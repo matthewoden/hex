@@ -1,50 +1,18 @@
 defmodule Hex.Tar do
   @supported ["3"]
-  @version "3"
   @required_files ~w(VERSION CHECKSUM metadata.config contents.tar.gz)c
 
   def create(meta, files, cleanup_tarball? \\ true) do
-    contents_path = "#{meta[:name]}-#{meta[:version]}-contents.tar.gz"
-    path = "#{meta[:name]}-#{meta[:version]}.tar"
+    # FIXME: remove this, update tests instead
+    meta = Map.put_new(meta, :files, [])
 
-    :ok = create_tar(contents_path, files, [:compressed])
-    contents = File.read!(contents_path)
-
-    meta_string = encode_term(meta)
-    blob = @version <> meta_string <> contents
-    checksum = :crypto.hash(:sha256, blob) |> Base.encode16()
-
-    files = [
-      {"VERSION", @version},
-      {"CHECKSUM", checksum},
-      {"metadata.config", meta_string},
-      {"contents.tar.gz", contents}
-    ]
-    :ok = create_tar(path, files, [])
-
-    tar = File.read!(path)
-    File.rm!(contents_path)
-    if cleanup_tarball?, do: File.rm!(path)
-    {tar, checksum}
-  end
-
-  defp create_tar(path, files, opts) do
-    {:ok, tar} = :hex_erl_tar.open(Hex.string_to_charlist(path), opts ++ [:write])
-
-    try do
-      Enum.each(files, fn
-        {name, contents, mode} ->
-          :ok = :hex_erl_tar.add(tar, contents, Hex.string_to_charlist(name), mode, [])
-        {name, contents} ->
-          :ok = :hex_erl_tar.add(tar, contents, Hex.string_to_charlist(name), [])
-        name ->
-          contents = File.read!(name)
-          mode = File.stat!(name).mode
-          :ok = :hex_erl_tar.add(tar, contents, Hex.string_to_charlist(name), mode, [])
+    files =
+      Enum.map(files, fn
+        {path, contents} -> {Hex.string_to_charlist(path), contents}
+        path -> Hex.string_to_charlist(path)
       end)
-    after
-      :hex_erl_tar.close(tar)
-    end
+    {:ok, {tar, checksum}} = :hex_tar.create(meta, files, keep_tarball: !cleanup_tarball?)
+    {tar, List.to_string(checksum)}
   end
 
   def unpack(path, dest, repo, name, version) do
@@ -117,13 +85,6 @@ defmodule Hex.Tar do
       {:error, reason} ->
         Mix.raise "Unpacking inner tarball failed: " <> format_error(reason)
     end
-  end
-
-  defp encode_term(list) do
-    list
-    |> Hex.Utils.binarify(maps: false)
-    |> Enum.map(&[:io_lib_pretty.print(&1, encoding: :utf8) | ".\n"])
-    |> IO.chardata_to_string()
   end
 
   defp format_error({_path, reason}) do
