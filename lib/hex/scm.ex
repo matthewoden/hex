@@ -130,10 +130,7 @@ defmodule Hex.SCM do
 
     meta = Hex.Tar.unpack(path, dest, repo, name, lock.version)
     build_tools = guess_build_tools(meta)
-    managers =
-      build_tools
-      |> Enum.map(&String.to_atom/1)
-      |> Enum.sort()
+    managers = Enum.sort(build_tools)
 
     manifest = encode_manifest(name, lock.version, lock.checksum, repo, managers)
     File.write!(Path.join(dest, ".hex"), manifest)
